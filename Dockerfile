@@ -1,6 +1,7 @@
 FROM python:3.7-alpine
 
 # Install dependencies
+RUN pip install python-dateutil
 RUN pip install six
 RUN pip install chardet
 RUN pip install pdfkit

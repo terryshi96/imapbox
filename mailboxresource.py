@@ -9,7 +9,7 @@ import os
 import hashlib
 from message import Message
 import datetime
-
+from dateutil.parser import parse
 
 
 class MailboxClient:
@@ -18,7 +18,8 @@ class MailboxClient:
     def __init__(self, host, port, username, password, remote_folder):
         self.mailbox = imaplib.IMAP4_SSL(host, port)
         self.mailbox.login(username, password)
-        self.mailbox.select(remote_folder, readonly=True)
+        # self.mailbox.select(remote_folder, readonly=True)
+        self.mailbox.select(remote_folder, readonly=False)
 
     def copy_emails(self, days, local_folder, wkhtmltopdf):
 
@@ -33,10 +34,12 @@ class MailboxClient:
             date = (datetime.date.today() - datetime.timedelta(days)).strftime("%d-%b-%Y")
             criterion = '(SENTSINCE {date})'.format(date=date)
 
-        typ, data = self.mailbox.search(None, criterion)
+        # typ, data = self.mailbox.search(None, criterion)
+        typ, data = self.mailbox.search(None, 'UnSeen')
         for num in data[0].split():
             typ, data = self.mailbox.fetch(num, '(RFC822)')
             if self.saveEmail(data):
+                typ, data = self.mailbox.store(num, '+FLAGS','\\Seen')
                 n_saved += 1
             else:
                 n_exists += 1
@@ -55,14 +58,16 @@ class MailboxClient:
         else:
             foldername = hashlib.sha224(data).hexdigest()
 
-        year = 'None'
+        # year = 'None'
+        date = 'None'
         if msg['Date']:
-            match = re.search('\d{1,2}\s\w{3}\s(\d{4})', msg['Date'])
-            if match:
-                year = match.group(1)
+            # match = re.search('\d{1,2}\s\w{3}\s(\d{4})', msg['Date'])
+            # if match:
+            #     year = match.group(1)
+            date=parse(msg['Date']).strftime("%Y-%m-%d")
 
-
-        return os.path.join(self.local_folder, year, foldername)
+        # return os.path.join(self.local_folder, year, foldername)
+        return os.path.join(self.local_folder, date, foldername)
 
 
 

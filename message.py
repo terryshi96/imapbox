@@ -157,6 +157,7 @@ class Message:
         with io.open('%s/metadata.json' %(self.directory), 'w', encoding='utf8') as json_file:
             data = json.dumps({
                 'Id': self.msg['Message-Id'],
+                'DownloadUrl': '/download' + self.directory.replace('/var/imapbox',''),
                 'Subject' : self.getSubject(),
                 'From' : self.getFrom(),
                 'To' : tos,
