@@ -15,6 +15,7 @@ def load_configuration(args):
         'days': None,
         'local_folder': '.',
         'wkhtmltopdf': None,
+        'es_host': '127.0.0.1',
         'accounts': []
     }
 
@@ -27,6 +28,9 @@ def load_configuration(args):
 
         if config.has_option('imapbox', 'wkhtmltopdf'):
             options['wkhtmltopdf'] = os.path.expanduser(config.get('imapbox', 'wkhtmltopdf'))
+        
+        if config.has_option('imapbox', 'es_host'):
+            options['es_host'] = os.path.expanduser(config.get('imapbox', 'es_host'))
 
 
     for section in config.sections():

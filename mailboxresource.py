@@ -5,12 +5,12 @@ from __future__ import print_function
 
 import imaplib, email
 import re
-import os
+import json, os
 import hashlib
 from message import Message
 import datetime
 from dateutil.parser import parse
-
+from elasticsearch import Elasticsearch
 
 class MailboxClient:
     """Operations on a mailbox"""
@@ -21,13 +21,15 @@ class MailboxClient:
         # self.mailbox.select(remote_folder, readonly=True)
         self.mailbox.select(remote_folder, readonly=False)
 
-    def copy_emails(self, days, local_folder, wkhtmltopdf):
+    def copy_emails(self, days, local_folder, wkhtmltopdf, es_host):
 
         n_saved = 0
         n_exists = 0
 
         self.local_folder = local_folder
         self.wkhtmltopdf = wkhtmltopdf
+        self.es_host = es_host
+
         criterion = 'ALL'
 
         if days:
@@ -65,9 +67,10 @@ class MailboxClient:
             # if match:
             #     year = match.group(1)
             date=parse(msg['Date']).strftime("%Y-%m-%d")
+            month=parse(msg['Date']).strftime("%Y-%m")
 
         # return os.path.join(self.local_folder, year, foldername)
-        return os.path.join(self.local_folder, date, foldername)
+        return os.path.join(self.local_folder, date, foldername), month
 
 
 
@@ -81,7 +84,7 @@ class MailboxClient:
                     print("couldn't decode message with utf-8 - trying 'ISO-8859-1'")
                     msg = email.message_from_string(response_part[1].decode("ISO-8859-1"))
 
-                directory = self.getEmailFolder(msg, data[0][1])
+                directory, month = self.getEmailFolder(msg, data[0][1])
 
                 if os.path.exists(directory):
                     return False
@@ -96,6 +99,13 @@ class MailboxClient:
 
                     if self.wkhtmltopdf:
                         message.createPdfFile(self.wkhtmltopdf)
+                    
+                    es = Elasticsearch([{'host': self.es_host, 'port': '9200'}])
+                    file = directory + '/metadata.json'
+                    f = open(file,'r')
+                    es.index(index=month, ignore=400, doc_type='message', body=json.load(f))
+                    err = os.system('cd %s && tar -czf bundle.tar.gz ./* && rm -rf attachment* message* raw* metadata.json'%directory)
+
 
                 except Exception as e:
                     # ex: Unsupported charset on decode
@@ -111,7 +121,7 @@ class MailboxClient:
 
 def save_emails(account, options):
     mailbox = MailboxClient(account['host'], account['port'], account['username'], account['password'], account['remote_folder'])
-    stats = mailbox.copy_emails(options['days'], options['local_folder'], options['wkhtmltopdf'])
+    stats = mailbox.copy_emails(options['days'], options['local_folder'], options['wkhtmltopdf'], options['es_host'])
     mailbox.cleanup()
     print('{} emails created, {} emails already exists'.format(stats[0], stats[1]))
 

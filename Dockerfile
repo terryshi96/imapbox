@@ -1,11 +1,7 @@
 FROM python:3.7-alpine
 
 # Install dependencies
-RUN pip install python-dateutil
-RUN pip install six
-RUN pip install chardet
-RUN pip install pdfkit
-RUN apk add --update wkhtmltopdf
+RUN pip install python-dateutil six elasticsearch chardet pdfkit && apk add --update wkhtmltopdf curl tar
 
 # Make the data and config directory a volume
 VOLUME ["/etc/imapbox/"]
