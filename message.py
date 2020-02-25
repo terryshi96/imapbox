@@ -154,6 +154,7 @@ class Message:
                 text_content = strip_tags(self.getHtmlContent(parts['html']))
 
         rfc2822, iso8601 = self.normalizeDate(self.msg['Date'])
+        timestamp=parse(self.msg['Date']).isoformat()
 
         with io.open('%s/metadata.json' %(self.directory), 'w', encoding='utf8') as json_file:
             data = json.dumps({
@@ -165,7 +166,7 @@ class Message:
                 'Cc' : ccs,
                 'Date' : rfc2822,
                 'Utc' : iso8601,
-                '@timestamp': iso8601,
+                '@timestamp': timestamp,
                 'Attachments': attachments,
                 'WithHtml': len(parts['html']) > 0,
                 'WithText': len(parts['text']) > 0,
