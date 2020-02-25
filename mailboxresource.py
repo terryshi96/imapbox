@@ -103,7 +103,8 @@ class MailboxClient:
                     es = Elasticsearch([{'host': self.es_host, 'port': '9200'}])
                     file = directory + '/metadata.json'
                     f = open(file,'r')
-                    es.index(index=month, ignore=400, doc_type='message', body=json.load(f))
+                    index='azfolder-' + month
+                    es.index(index=index, ignore=400, doc_type='message', body=json.load(f))
                     err = os.system('cd %s && tar -czf bundle.tar.gz ./* && rm -rf attachment* message* raw* metadata.json'%directory)
 
 

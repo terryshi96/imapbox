@@ -5,6 +5,8 @@ services:
     build: .
     container_name: imapbox
     volumes:
-      - .:/var/imapbox
+      - /opt/data1/gmail:/var/imapbox
       # change the path to the config
       - ./config.cfg:/etc/imapbox/config.cfg
+    logging:
+       driver: syslog
