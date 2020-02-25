@@ -15,6 +15,7 @@ import gzip
 import cgi
 import time
 import pkgutil
+from dateutil.parser import parse
 
 from six.moves import html_parser
 
