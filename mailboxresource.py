@@ -87,7 +87,8 @@ class MailboxClient:
 
                 directory, month = self.getEmailFolder(msg, data[0][1])
 
-                if os.path.exists(directory):
+                file = directory + '/bundle.tar.gz'
+                if os.path.exists(file):
                     return False
 
                 os.makedirs(directory)
