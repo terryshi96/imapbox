@@ -71,9 +71,10 @@ def strip_tags(html):
 class Message:
     """Operation on a message"""
 
-    def __init__(self, directory, msg):
+    def __init__(self, directory, msg, kibana_host):
         self.msg = msg
         self.directory = directory
+        self.kibana_host = kibana_host
 
     def getmailheader(self, header_text, default="ascii"):
         """Decode header_text if needed"""
@@ -157,13 +158,14 @@ class Message:
         with io.open('%s/metadata.json' %(self.directory), 'w', encoding='utf8') as json_file:
             data = json.dumps({
                 'Id': self.msg['Message-Id'],
-                'DownloadUrl': '/download' + self.directory.replace('/var/imapbox','') + '/bundle.tar.gz',
+                'DownloadUrl': self.kibana_host + '/download' + self.directory.replace('/var/imapbox','') + '/bundle.tar.gz',
                 'Subject' : self.getSubject(),
                 'From' : self.getFrom(),
                 'To' : tos,
                 'Cc' : ccs,
                 'Date' : rfc2822,
                 'Utc' : iso8601,
+                '@timestamp': iso8601,
                 'Attachments': attachments,
                 'WithHtml': len(parts['html']) > 0,
                 'WithText': len(parts['text']) > 0,

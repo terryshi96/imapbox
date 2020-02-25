@@ -21,7 +21,7 @@ class MailboxClient:
         # self.mailbox.select(remote_folder, readonly=True)
         self.mailbox.select(remote_folder, readonly=False)
 
-    def copy_emails(self, days, local_folder, wkhtmltopdf, es_host):
+    def copy_emails(self, days, local_folder, wkhtmltopdf, es_host, kibana_host):
 
         n_saved = 0
         n_exists = 0
@@ -29,6 +29,7 @@ class MailboxClient:
         self.local_folder = local_folder
         self.wkhtmltopdf = wkhtmltopdf
         self.es_host = es_host
+        self.kibana_host = kibana_host
 
         criterion = 'ALL'
 
@@ -92,7 +93,7 @@ class MailboxClient:
                 os.makedirs(directory)
 
                 try:
-                    message = Message(directory, msg)
+                    message = Message(directory, msg, self.kibana_host)
                     message.createRawFile(data[0][1])
                     message.createMetaFile()
                     message.extractAttachments()
@@ -105,7 +106,7 @@ class MailboxClient:
                     f = open(file,'r')
                     index='azfolder-' + month
                     es.index(index=index, ignore=400, doc_type='message', body=json.load(f))
-                    err = os.system('cd %s && tar -czf bundle.tar.gz ./* && rm -rf attachment* message* raw* metadata.json'%directory)
+                    err = os.system('cd %s && tar -czf bundle.tar.gz ./* && rm -rf attachment* me* raw*'%directory)
 
 
                 except Exception as e:
@@ -122,7 +123,7 @@ class MailboxClient:
 
 def save_emails(account, options):
     mailbox = MailboxClient(account['host'], account['port'], account['username'], account['password'], account['remote_folder'])
-    stats = mailbox.copy_emails(options['days'], options['local_folder'], options['wkhtmltopdf'], options['es_host'])
+    stats = mailbox.copy_emails(options['days'], options['local_folder'], options['wkhtmltopdf'], options['es_host'], options['kibana_host'])
     mailbox.cleanup()
     print('{} emails created, {} emails already exists'.format(stats[0], stats[1]))
 

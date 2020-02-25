@@ -16,6 +16,7 @@ def load_configuration(args):
         'local_folder': '.',
         'wkhtmltopdf': None,
         'es_host': '127.0.0.1',
+        'kibana_host': 'www.example.com',
         'accounts': []
     }
 
@@ -31,6 +32,9 @@ def load_configuration(args):
         
         if config.has_option('imapbox', 'es_host'):
             options['es_host'] = os.path.expanduser(config.get('imapbox', 'es_host'))
+
+        if config.has_option('imapbox', 'kibana_host'):
+            options['kibana_host'] = os.path.expanduser(config.get('imapbox', 'kibana_host'))
 
 
     for section in config.sections():
